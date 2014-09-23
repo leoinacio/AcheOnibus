@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html>
+   <head>
+      <title></title>
+      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+      
+      <style type="text/css">
+         html, body{
+	 	height: 100%;
+		margin: 0;
+	 }
+
+	 #mapDiv{
+		  min-height: 100%;
+	 }
+      </style>
+    		
+      <script type='text/javascript' src='http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0'></script>
+
+      <script type='text/javascript'>
+
+	var map = null;
+	var numero = null;
+	var intervalo = null;
+	var pinInfobox;
+	var infoboxLayer = new Microsoft.Maps.EntityCollection();
+	
+         
+         function GetMap()
+         {
+            // Initialize the map
+            map = new Microsoft.Maps.Map(document.getElementById('mapDiv'), {credentials:'AvOuHfxL9ZfPN4FGjuWh5lKJ7u8xyvSmiFt54QadIJ2NJQBWzAQGJksa_NL1e48W', center: new Microsoft.Maps.Location(-22.878706, -43.190231), zoom: 11 }); 
+
+         } 
+
+	 function mudaPosicoes()
+	 {
+		clearInterval(intervalo);
+		numero = document.getElementById('linha').value;
+		url = "/onibus/" + numero + ".txt";
+	  			// Create the entity collection with the polygon and pushpins at each corner
+        var polygonWithPins = new Microsoft.Maps.EntityCollection();
+		pinInfobox = new Microsoft.Maps.Infobox(new Microsoft.Maps.Location(0, 0), { visible: false });            
+		infoboxLayer.clear();
+        infoboxLayer.push(pinInfobox);
+            // Create the locations
+            
+	    var xmlHttp = null;
+	    xmlHttp = new XMLHttpRequest();
+	    xmlHttp.open("GET", url, false);
+	    xmlHttp.send( null );
+	    var fileContent = xmlHttp.responseText;
+	    var fileArray = fileContent.split('\r\n');
+
+            var n = fileArray.length;
+	    for(i = 0; i < n; i++)
+	    {
+			latlongs= fileArray[i].split('\t');
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(parseFloat(latlongs[0]),parseFloat(latlongs[1])));
+			pin.Title = latlongs[2] + " - " + latlongs[3];
+			pin.Description = "Atualizado em: " + latlongs[4] ;
+			polygonWithPins.push(pin);
+			Microsoft.Maps.Events.addHandler(pin, 'click', displayInfobox);
+            		Microsoft.Maps.Events.addHandler(map, 'viewchange', hideInfobox);
+	    }
+	    if (n > 0 )
+	    {
+            	map.entities.clear();
+	        // Add the shape to the map
+         	map.entities.push(polygonWithPins);
+		map.entities.push(infoboxLayer);
+	    }
+	    intervalo = setInterval("mudaPosicoes();", 60000);
+	 }
+	 function displayInfobox(e) {
+        pinInfobox.setOptions({title: e.target.Title, description: e.target.Description, visible:true, height:100, width: 350, offset: new Microsoft.Maps.Point(0,25)});
+        pinInfobox.setLocation(e.target.getLocation());
+     }
+
+     function hideInfobox(e) {
+        pinInfobox.setOptions({ visible: false });
+     }
+      </script>
+   </head>
+   <body onload="GetMap();">
+	   <div id='mapDiv'></div>      
+	   <input id="linha" type="text"/>
+	   <input id="botao" type="button" value="Buscar" onclick="mudaPosicoes();"/>
+   </body>
+</html>
