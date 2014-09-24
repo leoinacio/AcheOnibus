@@ -42,19 +42,20 @@ while True:
 			if "txt" in infile:
 				os.remove(path + "\\" + infile)
 				continue
-		print "Iniciando Request"
+		print ("Iniciando Request")
 		fLog.write("Iniciando Request<br>")
 		request = urllib2.Request(url)
 		response = urllib2.urlopen(request)
 		document = response.read()
-		print "Request finalizado"
+
+		print ("Request finalizado")
 		fLog.write("Request Finalizado<br>")
+		
 		lines = document.split('\n')
-	
 		first = True
 
 		onibus = set()
-		print "Lendo os dados"
+		print ("Lendo os dados")
 		fLog.write("Lendo os dados<br>")		
 		for line in lines:
 			if first == True:
@@ -86,25 +87,14 @@ while True:
 					properties = dict_onibus[ordem]
 				else:
 					properties = []
-					properties.append()
-					properties.append()
+					properties.append("")
+					properties.append("")
 					properties.append("Sentido indefinido")
 					dict_onibus[ordem] = properties
 				new_properties = []
 				new_properties.append(latitude[1:len(latitude)-1])
 				new_properties.append(longitude[1:len(longitude)-1])
-				pontoFinalFile = "C:\\inetpub\\wwwroot\\onibus\\PontosFinais\\" + linha + ".txt"
-				pontoFinal = open(pontoFinalFile, "r")
-				pontosFinais = pontoFinal.read().split("\n")
-				bairros = [pontosFinais[0].split("\t")[0], pontosFinais[1].split("\t")[0]]
-				lats = [pontosFinais[0].split("\t")[1], pontosFinais[1].split("\t")[1]]
-				longs = [pontosFinais[0].split("\t")[2], pontosFinais[1].split("\t")[2]]								
-				if calc_dist(new_properties[0], new_properties[1], lats[0], longs[0]) <= 500 :
-					new_properties.append(bairros[1])
-				else if calc_dist(new_properties[0], new_properties[1], lats[1], longs[1]) <= 500 :
-					new_properties.append(bairros[0])
-				else:
-					new_properties.append(properties[2])
+				new_properties.append(properties[2])
 				str = "C:\\inetpub\\wwwroot\\onibus\\" + linha + ".txt"
 				if linha in onibus:
 					fout = open(str, "a")
@@ -114,10 +104,10 @@ while True:
 				fout.write(new_properties[0] + '\t' + new_properties[1] + '\t' + ordem + '\t' + new_properties[2] + '\n')
 				fout.close()
 		dataPrint = datetime.now()
-		print dataPrint
+		print (dataPrint)
 		fLog.write(repr(dataPrint) + "<br>")
 	except:
-		print "Um erro ocorreu"
+		print ("Um erro ocorreu")
 		fLog.write("Um erro ocorrer")
 		traceback.print_exc(file=sys.stdout)	
 		time.sleep(120)

@@ -58,7 +58,7 @@
 			latlongs= fileArray[i].split('\t');
 			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(parseFloat(latlongs[0]),parseFloat(latlongs[1])));
 			pin.Title = latlongs[2] + " - " + latlongs[3];
-			pin.Description = "Atualizado em: " + latlongs[4] ;
+			pin.Description = "Atualizado em: data";
 			polygonWithPins.push(pin);
 			Microsoft.Maps.Events.addHandler(pin, 'click', displayInfobox);
             		Microsoft.Maps.Events.addHandler(map, 'viewchange', hideInfobox);
