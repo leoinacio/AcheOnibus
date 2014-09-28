@@ -1,6 +1,7 @@
 #-*- coding: utf-8 -*-
 
 from datetime import timedelta, date, datetime
+from operator import itemgetter, attrgetter
 import urllib,urllib2
 import time
 import os
@@ -27,21 +28,20 @@ def getElementInPos(pos, lista):
 url = "http://dadosabertos.rio.rj.gov.br/apiTransporte/apresentacao/csv/onibus.cfm"
 
 loghtml = "C:\\inetpub\\wwwroot\\onibus\\log.htm"
+path = 'C:\inetpub\wwwroot\onibus'
 dict_onibus = dict()
-
+onibus = set()
+toRemove = set()
+		
+listings = os.listdir(path)
+for arquivo in listings:
+	if "txt"in arquivo:
+		os.remove(path + "\\" + arquivo)
+		
 while True:
 	fLog = open(loghtml, "a")	
 	try:
 
-		path = 'C:\inetpub\wwwroot\onibus'
-		listing = os.listdir(path)
-
-		for infile in listing:
-			if infile == "template.txt":
-				continue
-			if "txt" in infile:
-				os.remove(path + "\\" + infile)
-				continue
 		print ("Iniciando Request")
 		fLog.write("Iniciando Request<br>")
 		request = urllib2.Request(url)
@@ -54,15 +54,23 @@ while True:
 		lines = document.split('\n')
 		first = True
 
-		onibus = set()
 		print ("Lendo os dados")
 		fLog.write("Lendo os dados<br>")		
+		
+		lista_onibus = []
 		for line in lines:
 			if first == True:
 				first = False
 				continue
-			attr = line.split(',')
-			dataEHora = getElementInPos(0,attr)
+			attr = tuple(line.split(','))
+			if len(attr) < 6:
+				continue
+			lista_onibus.append(attr)
+		lista_onibus = sorted(lista_onibus, key=itemgetter(2))   
+		previous_line = "blah"
+		texto = ""
+		for bus_tuple in lista_onibus:
+			dataEHora = getElementInPos(0,bus_tuple)
 			data = getElementInPos(0,dataEHora.split())
 			hora = getElementInPos(1,dataEHora.split())
 			month = getElementInPos(0,data.split('-'))
@@ -71,44 +79,44 @@ while True:
 			hour = getElementInPos(0,hora.split(':'))
 			minuto = getElementInPos(1,hora.split(':'))
 			segundo = getElementInPos(2,hora.split(':'))	
-			if line != '':
-				data = datetime(int(year),int(month),int(day), int(hour), int(minuto), int(segundo), 0)
-				now = datetime.now()
-				if (now - data) > timedelta(minutes=20):
-					continue
-			else:
+			data = datetime(int(year),int(month),int(day), int(hour), int(minuto), int(segundo), 0)
+			now = datetime.now()
+			if (now - data) > timedelta(minutes=20):
 				continue
-			ordem = getElementInPos(1,attr)
-			linha = getElementInPos(2,attr)
-			latitude = getElementInPos(3,attr)
-			longitude = getElementInPos(4,attr)
+			ordem = getElementInPos(1,bus_tuple)
+			linha = getElementInPos(2,bus_tuple)
+			latitude = getElementInPos(3,bus_tuple)
+			longitude = getElementInPos(4,bus_tuple)
 			if linha != '':
-				if ordem in dict_onibus == True:
-					properties = dict_onibus[ordem]
-				else:
-					properties = []
-					properties.append("")
-					properties.append("")
-					properties.append("Sentido indefinido")
-					dict_onibus[ordem] = properties
 				new_properties = []
 				new_properties.append(latitude[1:len(latitude)-1])
 				new_properties.append(longitude[1:len(longitude)-1])
-				new_properties.append(properties[2])
+				new_properties.append("Sentido Indefinido")
+				new_properties.append(dataEHora)
 				str = "C:\\inetpub\\wwwroot\\onibus\\" + linha + ".txt"
-				if linha in onibus:
-					fout = open(str, "a")
-				else:
+				if linha != previous_line:
+					if previous_line != "blah":
+						fout.write(texto)
+						texto = ""
+						fout.close()
 					fout = open(str, "w")
-					onibus.add(linha)
-				fout.write(new_properties[0] + '\t' + new_properties[1] + '\t' + ordem + '\t' + new_properties[2] + '\n')
-				fout.close()
+					previous_line = linha
+					toRemove.add(str)
+					onibus.discard(str)
+				texto += new_properties[0] + '\t' + new_properties[1] + '\t' + ordem + '\t' + new_properties[2] +'\t' + new_properties[3] + '\n'
+		fout.write(texto)
+		texto = ""
+		fout.close()
+		for entry in onibus:
+			os.remove(entry)
+		onibus = toRemove
+		toRemove = set()
 		dataPrint = datetime.now()
 		print (dataPrint)
-		fLog.write(repr(dataPrint) + "<br>")
+		fLog.write(repr(dataPrint) + "<br>")	
 	except:
 		print ("Um erro ocorreu")
 		fLog.write("Um erro ocorrer")
 		traceback.print_exc(file=sys.stdout)	
-		time.sleep(120)
-	time.sleep(60)
+		time.sleep(100)
+	time.sleep(50)
