@@ -45,7 +45,9 @@ while True:
 		print ("Iniciando Request")
 		fLog.write("Iniciando Request<br>")
 		request = urllib2.Request(url)
-		response = urllib2.urlopen(request)
+		print ("...")
+		fLog.write("...<br>")
+		response = urllib2.urlopen(request, timeout = 60)
 		document = response.read()
 
 		print ("Request finalizado")
@@ -118,5 +120,5 @@ while True:
 		print ("Um erro ocorreu")
 		fLog.write("Um erro ocorrer")
 		traceback.print_exc(file=sys.stdout)	
-		time.sleep(100)
-	time.sleep(50)
+		time.sleep(80)
+	time.sleep(40)

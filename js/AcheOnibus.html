@@ -70,7 +70,7 @@
          	map.entities.push(polygonWithPins);
 		map.entities.push(infoboxLayer);
 	    }
-	    intervalo = setInterval("mudaPosicoes();", 60000);
+	    intervalo = setInterval("mudaPosicoes();", 20000);
 	 }
 	 function displayInfobox(e) {
         pinInfobox.setOptions({title: e.target.Title, description: e.target.Description, visible:true, height:100, width: 350, offset: new Microsoft.Maps.Point(0,25)});
