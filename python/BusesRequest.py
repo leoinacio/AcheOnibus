@@ -120,5 +120,5 @@ while True:
 		print ("Um erro ocorreu")
 		fLog.write("Um erro ocorrer")
 		traceback.print_exc(file=sys.stdout)	
-		time.sleep(80)
+		time.sleep(20)
 	time.sleep(40)
